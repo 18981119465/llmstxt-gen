@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置验证器</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .validation-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fff;
+        }
+        .validation-section {
+            margin-bottom: 20px;
+        }
+        .validation-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .validation-error {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .validation-warning {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        .validation-suggestion {
+            background-color: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        .validation-success {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .config-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .btn-validate {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+        }
+        .btn-validate:hover {
+            background: linear-gradient(135deg, #218838, #1ba085);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-check-circle"></i> 配置验证器
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/config/">
+                    <i class="fas fa-tachometer-alt"></i> 仪表板
+                </a>
+                <a class="nav-link" href="/config/editor">
+                    <i class="fas fa-edit"></i> 编辑器
+                </a>
+                <a class="nav-link active" href="/config/validator">
+                    <i class="fas fa-check-circle"></i> 验证器
+                </a>
+                <a class="nav-link" href="/config/history">
+                    <i class="fas fa-history"></i> 历史
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1>配置验证器</h1>
+                    <div>
+                        <button class="btn btn-validate text-white" onclick="validateConfig()">
+                            <i class="fas fa-check-circle"></i> 验证配置
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadConfig()">
+                            <i class="fas fa-sync-alt"></i> 重新加载
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="validation-card">
+                    <h5><i class="fas fa-code"></i> 配置预览</h5>
+                    <div id="config-preview" class="config-preview"></div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="validation-card">
+                    <h5><i class="fas fa-shield-alt"></i> 验证结果</h5>
+                    <div id="validation-results">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <p>点击"验证配置"按钮开始验证</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="validation-card">
+                    <h5><i class="fas fa-list-check"></i> 验证规则</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-check text-success"></i> 必需字段</h6>
+                            <ul class="small">
+                                <li>app.name - 应用名称</li>
+                                <li>app.version - 应用版本</li>
+                                <li>database.url - 数据库连接</li>
+                                <li>redis.host - Redis主机</li>
+                                <li>api.host - API主机</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-exclamation-triangle text-warning"></i> 格式验证</h6>
+                            <ul class="small">
+                                <li>版本号格式 (x.y.z)</li>
+                                <li>端口号范围 (1-65535)</li>
+                                <li>布尔值 (true/false)</li>
+                                <li>URL格式验证</li>
+                                <li>数值范围检查</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-lightbulb text-info"></i> 最佳实践</h6>
+                            <ul class="small">
+                                <li>使用环境变量</li>
+                                <li>避免硬编码密码</li>
+                                <li>配置文件结构清晰</li>
+                                <li>使用合理的默认值</li>
+                                <li>添加配置注释</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentConfig = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+        });
+
+        async function loadConfig() {
+            try {
+                const response = await fetch('/config/api/config');
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentConfig = result.config;
+                    displayConfig(currentConfig);
+                } else {
+                    alert('加载配置失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('网络错误: ' + error.message);
+            }
+        }
+
+        function displayConfig(config) {
+            const previewDiv = document.getElementById('config-preview');
+            const configStr = JSON.stringify(config, null, 2);
+            previewDiv.textContent = configStr;
+        }
+
+        async function validateConfig() {
+            if (!currentConfig) {
+                alert('请先加载配置');
+                return;
+            }
+
+            try {
+                const response = await fetch('/config/api/config/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ config: currentConfig })
+                });
+                
+                const result = await response.json();
+                displayValidationResults(result);
+            } catch (error) {
+                alert('验证失败: ' + error.message);
+            }
+        }
+
+        function displayValidationResults(result) {
+            const resultsDiv = document.getElementById('validation-results');
+            
+            if (result.success) {
+                if (result.valid) {
+                    resultsDiv.innerHTML = `
+                        <div class="validation-item validation-success">
+                            <i class="fas fa-check-circle"></i> <strong>配置验证通过</strong>
+                            <p class="mb-0">所有配置项都符合要求，没有发现任何问题。</p>
+                        </div>
+                    `;
+                } else {
+                    let html = '';
+                    
+                    if (result.errors && result.errors.length > 0) {
+                        html += '<div class="validation-section">';
+                        html += '<h6 class="text-danger"><i class="fas fa-exclamation-triangle"></i> 错误</h6>';
+                        result.errors.forEach(error => {
+                            html += `<div class="validation-item validation-error">
+                                <i class="fas fa-times-circle"></i> ${error}
+                            </div>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    if (result.warnings && result.warnings.length > 0) {
+                        html += '<div class="validation-section">';
+                        html += '<h6 class="text-warning"><i class="fas fa-exclamation-triangle"></i> 警告</h6>';
+                        result.warnings.forEach(warning => {
+                            html += `<div class="validation-item validation-warning">
+                                <i class="fas fa-exclamation-triangle"></i> ${warning}
+                            </div>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    if (result.suggestions && result.suggestions.length > 0) {
+                        html += '<div class="validation-section">';
+                        html += '<h6 class="text-info"><i class="fas fa-lightbulb"></i> 建议</h6>';
+                        result.suggestions.forEach(suggestion => {
+                            html += `<div class="validation-item validation-suggestion">
+                                <i class="fas fa-lightbulb"></i> ${suggestion}
+                            </div>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                }
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="validation-item validation-error">
+                        <i class="fas fa-times-circle"></i> <strong>验证失败</strong>
+                        <p class="mb-0">${result.error}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# 文档处理服务配置模板
+# 用于快速部署文档处理服务
+
+# 继承默认配置
+extends: "default"
+
+# 文档处理服务特定配置
+document_processor:
+  enabled: true
+  max_file_size: 20971520  # 20MB
+  supported_formats: ["txt", "md", "pdf", "docx", "rtf", "html"]
+  processing_timeout: 600
+  max_concurrent_processes: 5
+  
+# API 配置
+api:
+  port: 8002
+  workers: 4
+  
+# 存储配置
+storage:
+  local_path: "data/document-storage"
+  
+# 日志配置
+logging:
+  level: "INFO"
+  file: "logs/document-processor.log"

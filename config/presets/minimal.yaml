@@ -1,0 +1,35 @@
+# 最小化预设配置
+# 适用于开发测试环境
+
+# 继承默认配置
+extends: "default"
+
+# 系统配置
+system:
+  debug: true
+  env: "development"
+
+# 数据库配置
+database:
+  pool_size: 2
+  max_overflow: 5
+
+# API 配置
+api:
+  workers: 1
+  reload: true
+
+# 监控配置
+monitoring:
+  enabled: false
+
+# 服务配置
+ai_service:
+  enabled: false
+  
+document_processor:
+  enabled: true
+  max_file_size: 1048576  # 1MB
+  
+web_crawler:
+  enabled: false

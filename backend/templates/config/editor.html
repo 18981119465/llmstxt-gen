@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置编辑器</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/yaml/yaml.min.js"></script>
+    <style>
+        .editor-container {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .CodeMirror {
+            height: 500px;
+            font-size: 14px;
+        }
+        .toolbar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .preview-container {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .preview-json {
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-success {
+            background-color: #28a745;
+        }
+        .status-error {
+            background-color: #dc3545;
+        }
+        .status-warning {
+            background-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-edit"></i> 配置编辑器
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/config/">
+                    <i class="fas fa-tachometer-alt"></i> 仪表板
+                </a>
+                <a class="nav-link active" href="/config/editor">
+                    <i class="fas fa-edit"></i> 编辑器
+                </a>
+                <a class="nav-link" href="/config/validator">
+                    <i class="fas fa-check-circle"></i> 验证器
+                </a>
+                <a class="nav-link" href="/config/history">
+                    <i class="fas fa-history"></i> 历史
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1>配置编辑器</h1>
+                    <div>
+                        <button class="btn btn-secondary" onclick="formatYAML()">
+                            <i class="fas fa-magic"></i> 格式化
+                        </button>
+                        <button class="btn btn-info" onclick="validateConfig()">
+                            <i class="fas fa-check-circle"></i> 验证
+                        </button>
+                        <button class="btn btn-primary" onclick="saveConfig()">
+                            <i class="fas fa-save"></i> 保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="editor-container">
+                    <div class="toolbar">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-code"></i> YAML 编辑器</span>
+                            <div>
+                                <span id="edit-status" class="status-indicator status-success"></span>
+                                <span id="edit-status-text">就绪</span>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea id="yaml-editor">{{ config_yaml }}</textarea>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="preview-container">
+                    <h6><i class="fas fa-eye"></i> JSON 预览</h6>
+                    <div id="json-preview" class="preview-json"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6><i class="fas fa-info-circle"></i> 使用说明</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="mb-0">
+                            <li>在左侧编辑器中修改 YAML 配置</li>
+                            <li>右侧会实时显示 JSON 格式的预览</li>
+                            <li>使用"格式化"按钮可以美化 YAML 格式</li>
+                            <li>使用"验证"按钮检查配置语法</li>
+                            <li>使用"保存"按钮保存配置更改</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 验证结果模态框 -->
+    <div class="modal fade" id="validationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">配置验证结果</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="validation-results"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script>
+        let editor;
+        let validationModal;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化 CodeMirror 编辑器
+            editor = CodeMirror.fromTextArea(document.getElementById('yaml-editor'), {
+                mode: 'yaml',
+                theme: 'monokai',
+                lineNumbers: true,
+                lineWrapping: true,
+                autoCloseBrackets: true,
+                matchBrackets: true,
+                indentUnit: 2,
+                tabSize: 2,
+                indentWithTabs: false
+            });
+
+            // 初始化模态框
+            validationModal = new bootstrap.Modal(document.getElementById('validationModal'));
+
+            // 监听编辑器变化
+            editor.on('change', function() {
+                updatePreview();
+                updateStatus('editing', '编辑中...');
+            });
+
+            // 初始化预览
+            updatePreview();
+        });
+
+        function updatePreview() {
+            try {
+                const yamlText = editor.getValue();
+                const jsonObject = jsyaml.load(yamlText);
+                const jsonString = JSON.stringify(jsonObject, null, 2);
+                document.getElementById('json-preview').textContent = jsonString;
+                updateStatus('success', '就绪');
+            } catch (error) {
+                document.getElementById('json-preview').textContent = 'YAML 解析错误: ' + error.message;
+                updateStatus('error', '语法错误');
+            }
+        }
+
+        function updateStatus(status, text) {
+            const indicator = document.getElementById('edit-status');
+            const statusText = document.getElementById('edit-status-text');
+            
+            indicator.className = 'status-indicator status-' + status;
+            statusText.textContent = text;
+        }
+
+        function formatYAML() {
+            try {
+                const yamlText = editor.getValue();
+                const jsonObject = jsyaml.load(yamlText);
+                const formattedYaml = jsyaml.dump(jsonObject, {
+                    indent: 2,
+                    lineWidth: -1,
+                    noRefs: true
+                });
+                editor.setValue(formattedYaml);
+                updateStatus('success', '已格式化');
+            } catch (error) {
+                alert('格式化失败: ' + error.message);
+            }
+        }
+
+        async function validateConfig() {
+            try {
+                const yamlText = editor.getValue();
+                const config = jsyaml.load(yamlText);
+                
+                const response = await fetch('/config/api/config/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ config: config })
+                });
+                
+                const result = await response.json();
+                showValidationResults(result);
+            } catch (error) {
+                alert('验证失败: ' + error.message);
+            }
+        }
+
+        function showValidationResults(result) {
+            const resultsDiv = document.getElementById('validation-results');
+            
+            if (result.success) {
+                if (result.valid) {
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> 配置验证通过
+                        </div>
+                    `;
+                } else {
+                    let html = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> 配置验证失败
+                        </div>
+                    `;
+                    
+                    if (result.errors && result.errors.length > 0) {
+                        html += '<h6>错误:</h6><ul>';
+                        result.errors.forEach(error => {
+                            html += `<li class="text-danger">${error}</li>`;
+                        });
+                        html += '</ul>';
+                    }
+                    
+                    if (result.warnings && result.warnings.length > 0) {
+                        html += '<h6>警告:</h6><ul>';
+                        result.warnings.forEach(warning => {
+                            html += `<li class="text-warning">${warning}</li>`;
+                        });
+                        html += '</ul>';
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                }
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> 验证失败: ${result.error}
+                    </div>
+                `;
+            }
+            
+            validationModal.show();
+        }
+
+        async function saveConfig() {
+            try {
+                const yamlText = editor.getValue();
+                const config = jsyaml.load(yamlText);
+                
+                const response = await fetch('/config/api/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ config: config })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('配置保存成功！');
+                    updateStatus('success', '已保存');
+                } else {
+                    alert('配置保存失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('保存失败: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

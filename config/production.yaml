@@ -1,0 +1,50 @@
+# 生产环境配置文件
+# 覆盖默认配置中的生产环境特定设置
+
+# 系统配置
+system:
+  debug: false
+  env: "production"
+
+# 数据库配置
+database:
+  host: "${DB_HOST}"
+  port: ${DB_PORT}
+  name: "${DB_NAME}"
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  pool_size: 20
+  max_overflow: 30
+
+# Redis 配置
+redis:
+  host: "${REDIS_HOST}"
+  port: ${REDIS_PORT}
+  password: "${REDIS_PASSWORD}"
+  max_connections: 20
+
+# API 服务配置
+api:
+  host: "0.0.0.0"
+  workers: 8
+  cors_origins: ["https://yourdomain.com"]
+  
+# 日志配置
+logging:
+  level: "WARNING"
+  file: "/var/log/llmstxt-gen/app.log"
+
+# 监控配置
+monitoring:
+  enabled: true
+  metrics_port: 9090
+
+# 安全配置
+security:
+  secret_key: "${SECRET_KEY}"
+  jwt_secret: "${JWT_SECRET}"
+
+# 文件存储配置
+storage:
+  type: "${STORAGE_TYPE}"
+  local_path: "/var/lib/llmstxt-gen/storage"

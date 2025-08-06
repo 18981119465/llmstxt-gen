@@ -1,0 +1,61 @@
+# 企业级预设配置
+# 适用于大型生产环境
+
+# 继承默认配置
+extends: "default"
+
+# 系统配置
+system:
+  debug: false
+  env: "production"
+
+# 数据库配置
+database:
+  pool_size: 30
+  max_overflow: 50
+  pool_timeout: 60
+
+# Redis 配置
+redis:
+  max_connections: 30
+
+# API 配置
+api:
+  workers: 12
+
+# 监控配置
+monitoring:
+  enabled: true
+  metrics_port: 9090
+  health_check_interval: 15
+
+# 服务配置
+ai_service:
+  enabled: true
+  model: "gpt-4"
+  max_tokens: 4000
+  timeout: 120
+  retry_attempts: 5
+  
+document_processor:
+  enabled: true
+  max_file_size: 52428800  # 50MB
+  max_concurrent_processes: 10
+  processing_timeout: 1200
+  
+web_crawler:
+  enabled: true
+  max_pages: 1000
+  delay: 1
+  timeout: 120
+  max_concurrent_crawls: 10
+
+# 安全配置
+security:
+  bcrypt_rounds: 14
+  jwt_expiration: 7200
+
+# 日志配置
+logging:
+  rotation: "1h"
+  backup_count: 24

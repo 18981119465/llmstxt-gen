@@ -1,0 +1,24 @@
+# AI 服务配置模板
+# 用于快速部署AI服务
+
+# 继承默认配置
+extends: "default"
+
+# AI 服务特定配置
+ai_service:
+  enabled: true
+  model: "gpt-4"
+  max_tokens: 2000
+  temperature: 0.8
+  timeout: 60
+  retry_attempts: 5
+  
+# API 配置
+api:
+  port: 8001
+  workers: 2
+  
+# 日志配置
+logging:
+  level: "INFO"
+  file: "logs/ai-service.log"

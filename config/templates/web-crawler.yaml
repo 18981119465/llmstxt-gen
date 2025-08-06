@@ -1,0 +1,29 @@
+# 网站爬取服务配置模板
+# 用于快速部署网站爬取服务
+
+# 继承默认配置
+extends: "default"
+
+# 网站爬取服务特定配置
+web_crawler:
+  enabled: true
+  max_pages: 500
+  delay: 2
+  timeout: 60
+  max_concurrent_crawls: 3
+  respect_robots_txt: true
+  user_agent: "llmstxt-gen-crawler/1.0.0"
+  
+# API 配置
+api:
+  port: 8003
+  workers: 4
+  
+# 存储配置
+storage:
+  local_path: "data/crawler-storage"
+  
+# 日志配置
+logging:
+  level: "INFO"
+  file: "logs/web-crawler.log"

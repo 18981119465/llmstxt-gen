@@ -1,0 +1,35 @@
+# 开发环境配置文件
+# 覆盖默认配置中的开发环境特定设置
+
+# 系统配置
+system:
+  debug: true
+  env: "development"
+
+# 数据库配置
+database:
+  host: "localhost"
+  name: "llmstxt_gen_dev"
+  password: "dev_password"
+
+# API 服务配置
+api:
+  reload: true
+  cors_origins: ["http://localhost:3000", "http://localhost:8080"]
+
+# 日志配置
+logging:
+  level: "DEBUG"
+
+# 监控配置
+monitoring:
+  enabled: false
+
+# 安全配置
+security:
+  secret_key: "dev-secret-key-not-for-production-but-32-chars"
+  jwt_secret: "dev-jwt-secret-key-min-32-chars-plus"
+
+# 文件存储配置
+storage:
+  local_path: "data/storage_dev"

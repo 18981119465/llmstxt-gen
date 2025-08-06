@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置管理仪表板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .config-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fff;
+        }
+        .config-section {
+            margin-bottom: 15px;
+        }
+        .config-key {
+            font-weight: bold;
+            color: #495057;
+        }
+        .config-value {
+            color: #6c757d;
+            font-family: monospace;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .status-badge {
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-cog"></i> 配置管理
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/config/">
+                    <i class="fas fa-tachometer-alt"></i> 仪表板
+                </a>
+                <a class="nav-link" href="/config/editor">
+                    <i class="fas fa-edit"></i> 编辑器
+                </a>
+                <a class="nav-link" href="/config/validator">
+                    <i class="fas fa-check-circle"></i> 验证器
+                </a>
+                <a class="nav-link" href="/config/history">
+                    <i class="fas fa-history"></i> 历史
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1>配置管理仪表板</h1>
+                    <div>
+                        <button class="btn btn-primary" onclick="reloadConfig()">
+                            <i class="fas fa-sync-alt"></i> 重新加载
+                        </button>
+                        <button class="btn btn-success" onclick="exportConfig()">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="config-card">
+                    <h5><i class="fas fa-info-circle"></i> 配置信息</h5>
+                    <div class="config-section">
+                        <div class="config-key">文件路径:</div>
+                        <div class="config-value">{{ config_info.config_path }}</div>
+                    </div>
+                    <div class="config-section">
+                        <div class="config-key">最后修改:</div>
+                        <div class="config-value">{{ config_info.last_modified }}</div>
+                    </div>
+                    <div class="config-section">
+                        <div class="config-key">文件大小:</div>
+                        <div class="config-value">{{ config_info.file_size }} bytes</div>
+                    </div>
+                    <div class="config-section">
+                        <div class="config-key">格式:</div>
+                        <div class="config-value">{{ config_info.format }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="config-card">
+                    <h5><i class="fas fa-cogs"></i> 当前配置</h5>
+                    {% for section, values in config.items() %}
+                    <div class="config-section">
+                        <h6 class="text-primary">{{ section }}</h6>
+                        {% for key, value in values.items() %}
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <span class="config-key">{{ key }}:</span>
+                            </div>
+                            <div class="col-8">
+                                <span class="config-value">{{ value }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="config-card">
+                    <h5><i class="fas fa-bell"></i> 系统状态</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="fas fa-check-circle text-success fa-3x"></i>
+                                <h6 class="mt-2">配置系统</h6>
+                                <span class="badge bg-success status-badge">正常运行</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="fas fa-eye text-info fa-3x"></i>
+                                <h6 class="mt-2">文件监视</h6>
+                                <span class="badge bg-info status-badge">已启用</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="fas fa-shield-alt text-warning fa-3x"></i>
+                                <h6 class="mt-2">验证器</h6>
+                                <span class="badge bg-warning status-badge">待验证</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="fas fa-history text-secondary fa-3x"></i>
+                                <h6 class="mt-2">版本历史</h6>
+                                <span class="badge bg-secondary status-badge">已启用</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function reloadConfig() {
+            try {
+                const response = await fetch('/config/api/config/reload', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('配置重新加载成功！');
+                    location.reload();
+                } else {
+                    alert('配置重新加载失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('网络错误: ' + error.message);
+            }
+        }
+
+        async function exportConfig() {
+            try {
+                const response = await fetch('/config/api/config');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const dataStr = JSON.stringify(result.config, null, 2);
+                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'config.json';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                } else {
+                    alert('导出失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('网络错误: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

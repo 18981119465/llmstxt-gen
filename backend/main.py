@@ -19,6 +19,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Import and register services
+from src.services import DocumentProcessingService, get_service_factory, create_service
+from src.config.routes import router as config_router
+from src.config.web import router as config_web_router
+from src.config.management import init_config_system, shutdown_config_system
+
+# Initialize configuration system
+try:
+    config_manager = init_config_system()
+    print("Configuration system initialized successfully")
+except Exception as e:
+    print(f"Failed to initialize configuration system: {e}")
+    # Continue without config system for now
+
+# Register services with the factory
+service_factory = get_service_factory()
+service_factory.register_service('document_processor', DocumentProcessingService)
+
 app = FastAPI(
     title="llms.txt-gen API",
     description="API for llms.txt generation service",
@@ -148,6 +166,86 @@ async def get_document(document_id: int) -> DocumentResponse:
         return document
     finally:
         db.close()
+
+
+@app.get("/service/status")
+async def get_service_status():
+    """Get the status of configured services"""
+    global document_service
+    if document_service:
+        try:
+            status = await document_service.get_service_status()
+            return status
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to get service status: {str(e)}")
+    else:
+        return {"service_name": "DocumentProcessingService", "status": "not_initialized"}
+
+
+@app.post("/documents/{document_id}/process")
+async def process_document(document_id: int):
+    """Process a document using the configured service"""
+    global document_service
+    if not document_service:
+        raise HTTPException(status_code=503, detail="Document processing service not available")
+    
+    db = SessionLocal()
+    try:
+        # Get document from database
+        document = db.query(Document).filter(Document.id == document_id).first()
+        if not document:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # Process document using configured service
+        result = await document_service.process_document(document_id, document.content)
+        
+        return {
+            "document_id": document_id,
+            "processing_result": result,
+            "message": "Document processed successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process document: {str(e)}")
+    finally:
+        db.close()
+
+
+
+# Initialize document processing service
+document_service = None
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    global document_service
+    try:
+        document_service = await create_service('document_processor')
+        print("Document processing service initialized successfully")
+    except Exception as e:
+        print(f"Failed to initialize document processing service: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup services on shutdown"""
+    global document_service
+    if document_service:
+        try:
+            await document_service.stop()
+            print("Document processing service stopped successfully")
+        except Exception as e:
+            print(f"Failed to stop document processing service: {e}")
+    
+    # Shutdown configuration system
+    try:
+        shutdown_config_system()
+        print("Configuration system shutdown successfully")
+    except Exception as e:
+        print(f"Failed to shutdown configuration system: {e}")
+
+# Include configuration routes
+app.include_router(config_router, prefix="/api/v1/config", tags=["Configuration Management"])
+app.include_router(config_web_router, prefix="/config", tags=["Configuration Web Interface"])
 
 
 if __name__ == "__main__":
