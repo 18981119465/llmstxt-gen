@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(chmod:*)",
+      "Bash(docker:*)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(cp:*)",
+      "Bash(python:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(venv\\Scripts\\python.exe:*)",
+      "Bash(./venv/Scripts/python.exe:*)",
+      "Bash(../venv/Scripts/python.exe:*)",
+      "Bash(start:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(\"..\\venv\\Scripts\\python.exe\" -m mypy main.py)",
+      "Bash(\"..\\venv\\Scripts\\python.exe\" -m black main.py)",
+      "Bash(\"..\\venv\\Scripts\\python.exe\":*)"
+    ],
+    "deny": []
+  }
+}

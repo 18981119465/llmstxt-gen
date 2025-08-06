@@ -1,0 +1,27 @@
+[MASTER]
+init-hook='import sys; sys.path.append("backend/src")'
+
+[MESSAGES CONTROL]
+disable=missing-module-docstring,missing-function-docstring,missing-class-docstring
+
+[BASIC]
+good-names=id,db,i,j,k,ex,Run,_
+
+[FORMAT]
+max-line-length=88
+
+[TYPECHECK]
+ignored-modules=redis,celery
+
+[SIMILARITIES]
+min-similarity-lines=5
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes
+
+[VARIABLES]
+dummy-variables-rgx=^dummy_|^unused_
+
+[DESIGN]
+max-attributes=10
+max-public-methods=20
