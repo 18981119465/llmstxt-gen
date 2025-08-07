@@ -1,0 +1,235 @@
+# 日志系统配置
+logging:
+  # 基础配置
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    # JSON格式化器
+    json:
+      class: pythonjsonlogger.jsonlogger.JsonFormatter
+      format: "%(asctime)s %(name)s %(levelname)s %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+    
+    # 文本格式化器
+    text:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+    
+    # 详细格式化器
+    detailed:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+    
+    # 结构化格式化器
+    structured:
+      class: backend.src.monitoring.formatters.StructuredFormatter
+      format: "%(asctime)s %(name)s %(levelname)s %(message)s"
+      datefmt: "%Y-%m-%d %H:%M:%S"
+
+  # 过滤器
+  filters:
+    # 敏感信息过滤器
+    sensitive_filter:
+      class: backend.src.monitoring.filters.SensitiveDataFilter
+      sensitive_fields:
+        - password
+        - token
+        - api_key
+        - secret
+        - credit_card
+        - ssn
+        - phone
+    
+    # 请求ID过滤器
+    request_filter:
+      class: backend.src.monitoring.filters.RequestIdFilter
+    
+    # 用户ID过滤器
+    user_filter:
+      class: backend.src.monitoring.filters.UserIdFilter
+
+  # 处理器
+  handlers:
+    # 控制台处理器
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: text
+      stream: ext://sys.stdout
+    
+    # 文件处理器
+    file:
+      class: logging.handlers.RotatingFileHandler
+      level: INFO
+      formatter: json
+      filename: logs/app.log
+      maxBytes: 104857600  # 100MB
+      backupCount: 5
+      encoding: utf8
+    
+    # 错误文件处理器
+    error_file:
+      class: logging.handlers.RotatingFileHandler
+      level: ERROR
+      formatter: detailed
+      filename: logs/error.log
+      maxBytes: 52428800  # 50MB
+      backupCount: 10
+      encoding: utf8
+    
+    # 系统日志处理器
+    syslog:
+      class: logging.handlers.SysLogHandler
+      level: WARNING
+      formatter: text
+      address: /dev/log
+    
+    # HTTP处理器（用于远程日志收集）
+    http:
+      class: backend.src.monitoring.handlers.HTTPHandler
+      level: INFO
+      formatter: json
+      url: ""
+      timeout: 5
+    
+    # 缓冲处理器（批量处理日志）
+    buffered:
+      class: logging.handlers.MemoryHandler
+      level: INFO
+      formatter: json
+      capacity: 100
+      target: file
+      flushLevel: ERROR
+
+  # 日志记录器
+  loggers:
+    # 根日志记录器
+    root:
+      level: INFO
+      handlers: [console, file]
+      propagate: false
+    
+    # 应用日志记录器
+    app:
+      level: INFO
+      handlers: [console, file, buffered]
+      propagate: false
+    
+    # API日志记录器
+    api:
+      level: INFO
+      handlers: [console, file]
+      propagate: false
+    
+    # 数据库日志记录器
+    database:
+      level: INFO
+      handlers: [console, file]
+      propagate: false
+    
+    # 监控日志记录器
+    monitoring:
+      level: INFO
+      handlers: [console, file]
+      propagate: false
+    
+    # 安全日志记录器
+    security:
+      level: INFO
+      handlers: [console, file, error_file]
+      propagate: false
+    
+    # 审计日志记录器
+    audit:
+      level: INFO
+      handlers: [console, file]
+      propagate: false
+    
+    # 第三方库日志记录器
+    uvicorn:
+      level: INFO
+      handlers: [console, file]
+      propagate: false
+    
+    sqlalchemy:
+      level: WARNING
+      handlers: [console, file]
+      propagate: false
+    
+    httpx:
+      level: WARNING
+      handlers: [console, file]
+      propagate: false
+
+  # 日志级别配置
+  levels:
+    DEBUG:
+      color: "\033[36m"  # 青色
+    INFO:
+      color: "\033[32m"  # 绿色
+    WARNING:
+      color: "\033[33m"  # 黄色
+    ERROR:
+      color: "\033[31m"  # 红色
+    CRITICAL:
+      color: "\033[35m"  # 紫色
+
+  # 日志轮转配置
+  rotation:
+    enabled: true
+    when: midnight
+    interval: 1
+    backupCount: 30
+    encoding: utf8
+    utc: false
+
+  # 日志压缩配置
+  compression:
+    enabled: true
+    format: gzip
+    level: 6
+    suffix: ".gz"
+
+  # 日志清理配置
+  cleanup:
+    enabled: true
+    max_age_days: 90
+    max_size_gb: 10
+    schedule: "0 2 * * *"  # 每天凌晨2点
+
+  # 日志分析配置
+  analysis:
+    enabled: true
+    real_time: true
+    anomaly_detection: true
+    metrics:
+      - log_count
+      - error_rate
+      - response_time
+      - throughput
+    alerts:
+      - error_spike
+      - performance_degradation
+      - security_events
+
+  # 环境特定配置
+  environments:
+    development:
+      level: DEBUG
+      handlers: [console, file]
+      format: text
+    
+    testing:
+      level: INFO
+      handlers: [file]
+      format: json
+    
+    staging:
+      level: INFO
+      handlers: [console, file, http]
+      format: json
+    
+    production:
+      level: WARNING
+      handlers: [file, error_file, http]
+      format: json

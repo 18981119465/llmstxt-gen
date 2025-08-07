@@ -1,0 +1,320 @@
+# 告警规则配置
+alerts:
+  # 告警级别定义
+  levels:
+    DEBUG:
+      priority: 1
+      color: "#36a64f"  # 绿色
+      escalation_minutes: 0
+    INFO:
+      priority: 2
+      color: "#36a64f"  # 绿色
+      escalation_minutes: 0
+    WARNING:
+      priority: 3
+      color: "#ff9500"  # 橙色
+      escalation_minutes: 15
+    ERROR:
+      priority: 4
+      color: "#ff4d4f"  # 红色
+      escalation_minutes: 5
+    CRITICAL:
+      priority: 5
+      color: "#722ed1"  # 紫色
+      escalation_minutes: 1
+
+  # 告警规则
+  rules:
+    # 系统资源告警
+    - name: high_cpu_usage
+      description: "CPU使用率过高"
+      condition: "system.cpu.usage > 80"
+      duration: "5m"
+      level: WARNING
+      enabled: true
+      tags: [system, cpu, performance]
+      message: "CPU使用率过高: {{value}}%"
+      actions:
+        - type: notify
+          channels: [slack, email]
+        - type: auto_scale
+          enabled: false
+    
+    - name: critical_cpu_usage
+      description: "CPU使用率严重过高"
+      condition: "system.cpu.usage > 95"
+      duration: "2m"
+      level: CRITICAL
+      enabled: true
+      tags: [system, cpu, critical]
+      message: "CPU使用率严重过高: {{value}}%"
+      actions:
+        - type: notify
+          channels: [slack, email, sms]
+        - type: auto_scale
+          enabled: false
+    
+    - name: high_memory_usage
+      description: "内存使用率过高"
+      condition: "system.memory.usage > 85"
+      duration: "5m"
+      level: WARNING
+      enabled: true
+      tags: [system, memory, performance]
+      message: "内存使用率过高: {{value}}%"
+      actions:
+        - type: notify
+          channels: [slack]
+    
+    - name: low_disk_space
+      description: "磁盘空间不足"
+      condition: "system.disk.usage > 90"
+      duration: "1m"
+      level: CRITICAL
+      enabled: true
+      tags: [system, disk, storage]
+      message: "磁盘空间不足: {{value}}%"
+      actions:
+        - type: notify
+          channels: [slack, email, sms]
+        - type: cleanup
+          enabled: true
+
+    # 应用性能告警
+    - name: high_error_rate
+      description: "应用错误率过高"
+      condition: "app.error.rate > 0.05"  # 5%
+      duration: "5m"
+      level: ERROR
+      enabled: true
+      tags: [application, errors, performance]
+      message: "应用错误率过高: {{value}}%"
+      actions:
+        - type: notify
+          channels: [slack, email]
+    
+    - name: high_response_time
+      description: "响应时间过长"
+      condition: "app.response.time.p95 > 5000"  # 5秒
+      duration: "10m"
+      level: WARNING
+      enabled: true
+      tags: [application, performance, latency]
+      message: "响应时间过长: {{value}}ms"
+      actions:
+        - type: notify
+          channels: [slack]
+    
+    - name: low_throughput
+      description: "吞吐量过低"
+      condition: "app.throughput < 100"  # 100请求/分钟
+      duration: "10m"
+      level: WARNING
+      enabled: true
+      tags: [application, performance, throughput]
+      message: "吞吐量过低: {{value}} 请求/分钟"
+      actions:
+        - type: notify
+          channels: [slack]
+
+    # 数据库告警
+    - name: database_connection_error
+      description: "数据库连接错误"
+      condition: "database.connection.errors > 0"
+      duration: "1m"
+      level: CRITICAL
+      enabled: true
+      tags: [database, connection, critical]
+      message: "数据库连接错误: {{value}} 个错误"
+      actions:
+        - type: notify
+          channels: [slack, email, sms]
+    
+    - name: database_slow_query
+      description: "数据库慢查询"
+      condition: "database.query.slow.count > 10"
+      duration: "5m"
+      level: WARNING
+      enabled: true
+      tags: [database, performance, query]
+      message: "数据库慢查询过多: {{value}} 个"
+      actions:
+        - type: notify
+          channels: [slack]
+
+    # 服务健康告警
+    - name: service_down
+      description: "服务不可用"
+      condition: "service.health.status == 'down'"
+      duration: "1m"
+      level: CRITICAL
+      enabled: true
+      tags: [service, health, critical]
+      message: "服务不可用: {{service_name}}"
+      actions:
+        - type: notify
+          channels: [slack, email, sms]
+        - type: restart
+          enabled: true
+    
+    - name: service_degraded
+      description: "服务降级"
+      condition: "service.health.status == 'degraded'"
+      duration: "2m"
+      level: WARNING
+      enabled: true
+      tags: [service, health, performance]
+      message: "服务降级: {{service_name}}"
+      actions:
+        - type: notify
+          channels: [slack]
+
+    # 安全告警
+    - name: security_brute_force
+      description: "暴力破解攻击"
+      condition: "security.auth.failed.count > 10"
+      duration: "5m"
+      level: CRITICAL
+      enabled: true
+      tags: [security, auth, attack]
+      message: "检测到暴力破解攻击: {{value}} 次失败登录"
+      actions:
+        - type: notify
+          channels: [slack, email, sms]
+        - type: block_ip
+          enabled: true
+    
+    - name: security_suspicious_activity
+      description: "可疑活动"
+      condition: "security.suspicious.score > 0.8"
+      duration: "1m"
+      level: ERROR
+      enabled: true
+      tags: [security, suspicious]
+      message: "检测到可疑活动: 评分 {{value}}"
+      actions:
+        - type: notify
+          channels: [slack, email]
+
+    # 业务告警
+    - name: business_anomaly
+      description: "业务异常"
+      condition: "business.anomaly.detected == true"
+      duration: "5m"
+      level: WARNING
+      enabled: true
+      tags: [business, anomaly]
+      message: "检测到业务异常: {{anomaly_type}}"
+      actions:
+        - type: notify
+          channels: [slack]
+    
+    - name: business_volume_spike
+      description: "业务量激增"
+      condition: "business.volume.rate > business.volume.baseline * 2"
+      duration: "5m"
+      level: INFO
+      enabled: true
+      tags: [business, volume, spike]
+      message: "业务量激增: {{value}}%"
+      actions:
+        - type: notify
+          channels: [slack]
+
+  # 告警抑制规则
+  suppressions:
+    - name: maintenance_window
+      description: "维护窗口期间抑制告警"
+      condition: "maintenance.mode == true"
+      rules: ["*"]
+      duration: "maintenance.duration"
+    
+    - name: deployment_suppression
+      description: "部署期间抑制告警"
+      condition: "deployment.in_progress == true"
+      rules: ["high_error_rate", "high_response_time"]
+      duration: "deployment.duration"
+
+  # 告警聚合规则
+  aggregations:
+    - name: service_alerts
+      description: "按服务聚合告警"
+      group_by: ["service_name", "level"]
+      window: "10m"
+      threshold: 3
+      message: "服务 {{service_name}} 在10分钟内产生了 {{count}} 个{{level}}级别告警"
+
+  # 告警升级规则
+  escalations:
+    - name: critical_escalation
+      description: "严重告警升级"
+      condition: "alert.level == 'CRITICAL' && alert.duration > '30m'"
+      actions:
+        - type: notify
+          channels: [sms, phone]
+          recipients: [oncall_engineer, team_lead]
+    
+    - name: unresolved_escalation
+      description: "未解决告警升级"
+      condition: "alert.duration > '2h'"
+      actions:
+        - type: notify
+          channels: [email, phone]
+          recipients: [manager, director]
+
+  # 告警模板
+  templates:
+    slack:
+      title: "🚨 {{alert.level}} - {{alert.name}}"
+      message: "{{alert.message}}"
+      color: "{{alert.level.color}}"
+      fields:
+        - title: "服务"
+          value: "{{alert.service_name}}"
+          short: true
+        - title: "时间"
+          value: "{{alert.timestamp}}"
+          short: true
+        - title: "持续时间"
+          value: "{{alert.duration}}"
+          short: true
+        - title: "标签"
+          value: "{{alert.tags}}"
+          short: false
+    
+    email:
+      subject: "🚨 [{{alert.level}}] {{alert.name}}"
+      body: |
+        <h2>🚨 {{alert.level}} - {{alert.name}}</h2>
+        <p><strong>描述:</strong> {{alert.description}}</p>
+        <p><strong>消息:</strong> {{alert.message}}</p>
+        <p><strong>服务:</strong> {{alert.service_name}}</p>
+        <p><strong>时间:</strong> {{alert.timestamp}}</p>
+        <p><strong>持续时间:</strong> {{alert.duration}}</p>
+        <p><strong>标签:</strong> {{alert.tags}}</p>
+        <p><strong>详情:</strong> <a href="{{alert.link}}">查看详情</a></p>
+    
+    sms:
+      message: "🚨 {{alert.level}}: {{alert.message}} ({{alert.service_name}})"
+
+  # 告警历史配置
+  history:
+    retention_days: 365
+    max_records: 100000
+    compression: true
+    backup_enabled: true
+    backup_interval: "7d"
+
+  # 告警统计配置
+  statistics:
+    enabled: true
+    aggregation_interval: "1h"
+    metrics:
+      - alert_count
+      - alert_rate
+      - alert_resolution_time
+      - alert_escalation_rate
+    reporting:
+      daily: true
+      weekly: true
+      monthly: true

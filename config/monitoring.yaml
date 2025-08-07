@@ -1,0 +1,244 @@
+# 监控系统配置
+monitoring:
+  # 日志系统配置
+  logging:
+    # 日志级别 (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    level: INFO
+    # 日志格式 (json, text)
+    format: json
+    # 日志输出目标 (console, file, both)
+    output: both
+    # 日志文件配置
+    file:
+      path: logs/app.log
+      max_size: 100MB
+      backup_count: 5
+      rotation: daily
+    # 结构化日志字段
+    fields:
+      - timestamp
+      - level
+      - service_name
+      - message
+      - user_id
+      - request_id
+      - trace_id
+      - span_id
+      - function_name
+      - line_number
+      - metadata
+    # 敏感信息脱敏
+    sensitive_fields:
+      - password
+      - token
+      - api_key
+      - secret
+      - credit_card
+    # 日志热重载配置
+    hot_reload:
+      enabled: true
+      watch_files: true
+      reload_interval: 30
+
+  # 健康检查配置
+  health:
+    # 健康检查端点
+    endpoint: /health
+    # 检查间隔（秒）
+    check_interval: 30
+    # 超时时间（秒）
+    timeout: 10
+    # 健康检查项目
+    checks:
+      - name: database
+        type: database
+        enabled: true
+        critical: true
+      - name: redis
+        type: redis
+        enabled: true
+        critical: true
+      - name: disk_space
+        type: disk
+        enabled: true
+        critical: false
+        threshold: 10  # GB
+      - name: memory
+        type: memory
+        enabled: true
+        critical: false
+        threshold: 80  # %
+      - name: cpu
+        type: cpu
+        enabled: true
+        critical: false
+        threshold: 80  # %
+
+  # 性能监控配置
+  metrics:
+    # 指标收集间隔（秒）
+    collection_interval: 15
+    # Prometheus配置
+    prometheus:
+      enabled: true
+      port: 9090
+      path: /metrics
+    # 自定义指标
+    custom_metrics:
+      - name: request_count
+        type: counter
+        description: Total number of requests
+      - name: request_duration
+        type: histogram
+        description: Request duration in seconds
+      - name: error_count
+        type: counter
+        description: Total number of errors
+      - name: active_users
+        type: gauge
+        description: Number of active users
+    # 系统指标
+    system_metrics:
+      - cpu_usage
+      - memory_usage
+      - disk_usage
+      - network_io
+      - disk_io
+
+  # 告警配置
+  alerts:
+    # 告警级别 (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    min_level: WARNING
+    # 告警规则
+    rules:
+      - name: high_error_rate
+        condition: error_rate > 0.05  # 5%
+        duration: 5m
+        level: ERROR
+        message: "高错误率: {error_rate:.2%}"
+      - name: high_response_time
+        condition: avg_response_time > 5.0  # 5秒
+        duration: 10m
+        level: WARNING
+        message: "响应时间过长: {avg_response_time:.2f}s"
+      - name: low_disk_space
+        condition: disk_usage > 0.90  # 90%
+        duration: 1m
+        level: CRITICAL
+        message: "磁盘空间不足: {disk_usage:.2%}"
+      - name: service_down
+        condition: health_check_failed
+        duration: 1m
+        level: CRITICAL
+        message: "服务不可用: {service_name}"
+    # 通知渠道
+    notifications:
+      - type: email
+        enabled: false
+        smtp_server: smtp.gmail.com
+        smtp_port: 587
+        username: ""
+        password: ""
+        recipients: []
+      - type: slack
+        enabled: false
+        webhook_url: ""
+        channel: "#alerts"
+      - type: webhook
+        enabled: false
+        url: ""
+        headers: {}
+    # 告警历史
+    history:
+      retention_days: 30
+      max_records: 10000
+
+  # 监控仪表板配置
+  dashboard:
+    # 仪表板端口
+    port: 3001
+    # 刷新间隔（秒）
+    refresh_interval: 30
+    # 图表配置
+    charts:
+      - name: system_overview
+        title: "系统概览"
+        type: grid
+        metrics:
+          - cpu_usage
+          - memory_usage
+          - disk_usage
+          - active_users
+      - name: request_metrics
+        title: "请求指标"
+        type: line
+        metrics:
+          - request_count
+          - request_duration
+          - error_count
+      - name: health_status
+        title: "健康状态"
+        type: status
+        services:
+          - database
+          - redis
+          - api
+          - web
+
+  # 数据存储配置
+  storage:
+    # 数据库配置
+    database:
+      type: postgresql
+      host: localhost
+      port: 5432
+      database: llmstxt_monitoring
+      username: postgres
+      password: ""
+      table_prefix: monitoring_
+    # Redis配置
+    redis:
+      host: localhost
+      port: 6379
+      db: 1
+      password: ""
+    # 数据保留策略
+    retention:
+      logs: 30d
+      metrics: 90d
+      alerts: 365d
+      health_checks: 7d
+
+  # 安全配置
+  security:
+    # 访问控制
+    access_control:
+      enabled: true
+      admin_users: []
+      viewer_users: []
+    # 数据加密
+    encryption:
+      enabled: true
+      key_rotation_days: 90
+    # 审计日志
+    audit:
+      enabled: true
+      log_access: true
+      log_modifications: true
+
+  # 性能配置
+  performance:
+    # 缓存配置
+    cache:
+      enabled: true
+      ttl: 300  # 5分钟
+      max_size: 10000
+    # 批处理配置
+    batch:
+      enabled: true
+      size: 100
+      timeout: 5s
+    # 并发配置
+    concurrency:
+      max_workers: 10
+      max_queue_size: 1000

@@ -19,7 +19,8 @@
       "Bash(taskkill:*)",
       "Bash(\"..\\venv\\Scripts\\python.exe\" -m mypy main.py)",
       "Bash(\"..\\venv\\Scripts\\python.exe\" -m black main.py)",
-      "Bash(\"..\\venv\\Scripts\\python.exe\":*)"
+      "Bash(\"..\\venv\\Scripts\\python.exe\":*)",
+      "Bash(wmic process:*)"
     ],
     "deny": []
   }
