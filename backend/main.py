@@ -330,6 +330,15 @@ if services_available:
     app.include_router(config_web_router, prefix="/config", tags=["Configuration Web Interface"])
     print("Configuration routes included successfully")
 
+# Include API routes
+try:
+    from src.api.routers import auth_router, system_router
+    app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
+    app.include_router(system_router, prefix="/api/v1/system", tags=["System"])
+    print("API routes included successfully")
+except Exception as e:
+    print(f"Failed to include API routes: {e}")
+
 # Include monitoring routes
 try:
     from src.monitoring.health_api import router as health_router

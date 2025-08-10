@@ -1,0 +1,89 @@
+"""
+认证模块
+"""
+
+from .jwt import (
+    JWTHandler,
+    PasswordHandler,
+    TokenBlacklist,
+    jwt_handler,
+    password_handler,
+    token_blacklist,
+    create_token_pair,
+    verify_access_token,
+    verify_refresh_token,
+    invalidate_token,
+    get_token_info
+)
+from .rbac import (
+    UserRole,
+    Permission,
+    Resource,
+    RolePermission,
+    RBACManager,
+    PermissionChecker,
+    rbac_manager,
+    permission_checker,
+    check_user_permission,
+    get_user_by_id,
+    get_user_permissions
+)
+from .middleware import (
+    AuthMiddleware,
+    get_current_user,
+    get_current_user_id,
+    get_current_user_role,
+    require_permission,
+    require_role,
+    require_any_role,
+    require_admin,
+    require_user,
+    get_token_user,
+    get_refresh_token_user,
+    get_current_active_user,
+    get_current_admin_user,
+    verify_user_permission,
+    auth_middleware,
+    token_validator
+)
+
+__all__ = [
+    'JWTHandler',
+    'PasswordHandler',
+    'TokenBlacklist',
+    'jwt_handler',
+    'password_handler',
+    'token_blacklist',
+    'create_token_pair',
+    'verify_access_token',
+    'verify_refresh_token',
+    'invalidate_token',
+    'get_token_info',
+    'UserRole',
+    'Permission',
+    'Resource',
+    'RolePermission',
+    'RBACManager',
+    'PermissionChecker',
+    'rbac_manager',
+    'permission_checker',
+    'check_user_permission',
+    'get_user_by_id',
+    'get_user_permissions',
+    'AuthMiddleware',
+    'get_current_user',
+    'get_current_user_id',
+    'get_current_user_role',
+    'require_permission',
+    'require_role',
+    'require_any_role',
+    'require_admin',
+    'require_user',
+    'get_token_user',
+    'get_refresh_token_user',
+    'get_current_active_user',
+    'get_current_admin_user',
+    'verify_user_permission',
+    'auth_middleware',
+    'token_validator'
+]
